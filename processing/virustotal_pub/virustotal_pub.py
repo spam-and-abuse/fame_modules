@@ -4,7 +4,7 @@ from fame.core.module import ProcessingModule
 
 
 class VirusTotalPub(ProcessingModule):
-    name = "virustotalXXX"
+    name = "virustotal_pub"
     description = "Check hash against VT database"
     config = [
         {
