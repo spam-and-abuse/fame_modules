@@ -25,16 +25,22 @@ class VirusTotalPub(ProcessingModule):
             'Raw': u''
         }
 
-        if obj_type == 'file':
-            method = 'file'
-            # calulate target hash
-            h = hashlib.sha256()
-            with open(target, 'rb') as f:
-                h.update(f.read())
-            params['resource'] = h.hexdigest()
-        elif obj_type == 'url':
+        if obj_type == 'url':
             method = 'url'
             params['resource'] = target
+        elif obj_type == 'hash':
+            return True
+        else:
+            method = 'file'
+            # try to calulate target hash (assuming it is a file)
+            h = hashlib.sha256()
+            try:
+                with open(target, 'rb') as f:
+                    h.update(f.read())
+                params['resource'] = h.hexdigest()
+            except IOError: 
+                self.log('debug', 'No such file: {}'.format(target))
+                return False
 
         r = requests.get(url=vt_api_url.format(method=method), params=params)
         if r.status_code == 200:
