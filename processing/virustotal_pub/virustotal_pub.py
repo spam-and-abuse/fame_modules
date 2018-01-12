@@ -5,7 +5,7 @@ from fame.core.module import ProcessingModule
 
 class VirusTotalPub(ProcessingModule):
     name = "virustotal_pub"
-    description = "Check hash against VT database"
+    description = "Check file hash or url against VirusTotal database"
     config = [
         {
             'name': 'VT_API_KEY',
@@ -14,24 +14,28 @@ class VirusTotalPub(ProcessingModule):
         },
     ]
    
-    def each(self, target):
+    def each_with_type(self, target, obj_type):
         vt_api_url = 'http://www.virustotal.com/vtapi/v2/{method!s}/report'
-        params = {'apikey': self.VT_API_KEY,
+        params = {'apikey': self.VT_API_KEY,`
                   'resource': None }
-        method = 'file'
         
         self.results = {
             'VT': u'',
             'Detections': u'',
             'Raw': u''
         }
-        
-        # calulate target hash 
-        h = hashlib.sha256()
-        with open(target, 'rb') as f:
-            h.update(f.read())
-        params['resource'] = h.hexdigest()
- 
+
+        if (obj_type == 'file'):
+            method = 'file'  
+            # calulate target hash 
+            h = hashlib.sha256() 
+            with open(target, 'rb') as f:
+                h.update(f.read())
+            params['resource'] = h.hexdigest()
+        elif (obj_type == 'url'):
+            method = 'url'
+            params['resource'] = target
+       
         r = requests.get(url=vt_api_url.format(method=method), params=params)
         if r.status_code == 200:
             self.log('debug', 'VirusTotal message: {}'.format(r.json()['verbose_msg']))
